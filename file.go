@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 )
 
 func main() {
-	numFiles, err := strconv.Atoi(os.Args[0])
+	numFiles, err := strconv.Atoi(os.Args[1])
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Printf("Creating %d files in %s\n", numFiles, os.TempDir())
 
-	var files [numFiles]*os.File
+	files := make([]*os.File, numFiles)
 	for i := 0; i < numFiles; i++ {
 		file, err := ioutil.TempFile(os.TempDir(), "test")
 		if err != nil {

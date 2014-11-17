@@ -21,7 +21,7 @@ func main() {
 	}
 
 	fmt.Printf("Dialing %s...\n", raddr.String())
-	for conns := 0; conns < maxConns; conns++ {
+	for conns := 1; conns <= maxConns; conns++ {
 		conn, err := net.DialTCP("tcp", nil, raddr)
 		if err != nil {
 			panic(fmt.Sprintf("Error dialing %s: %s\n", connString, err))
