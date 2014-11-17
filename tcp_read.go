@@ -6,27 +6,29 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 )
 
-const (
-	maxport  = 65535
-	numConns = 1000
-)
+const maxport = 65535
 
 func main() {
+	numConns, err := strconv.Atoi(os.Args[0])
+	if err != nil {
+		panic(err)
+	}
+
 	for conns, port := 0, 1024; conns < numConns && port < maxport; port++ {
 		laddr := &net.TCPAddr{
 			Port: port,
-			IP:   net.ParseIP("127.0.0.1"),
 		}
-		conn, err := net.ListenTCP("tcp", laddr)
+		listener, err := net.ListenTCP("tcp", laddr)
 		if err != nil {
 			fmt.Printf("Error listening on port %d: %s\n", port, err)
 			continue
 		}
-		defer conn.Close()
+		defer listener.Close()
 
-		go readConnection(conn)
+		go acceptConnections(listener)
 		conns++
 	}
 
@@ -34,10 +36,20 @@ func main() {
 	bufio.NewReader(os.Stdin).ReadString('\n')
 }
 
-func readConnection(conn *net.Conn) {
-	bytes := make([]byte, 32)
+func acceptConnections(listener *net.TCPListener) {
 	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			fmt.Printf("Error accepting new connection on %s: %s", listener.Addr().String(), err)
+			continue
+		}
+		go readConnection(conn)
+	}
+}
+
+func readConnection(conn *net.Conn) {
+	for {
+		bytes := make([]byte, 32)
 		conn.Read(bytes)
-		fmt.Println(bytes)
 	}
 }

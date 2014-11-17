@@ -8,9 +8,12 @@ import (
 	"os"
 )
 
-const numFiles = 1000
-
 func main() {
+	numFiles, err := strconv.Atoi(os.Args[0])
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Printf("Creating %d files in %s\n", numFiles, os.TempDir())
 
 	var files [numFiles]*os.File

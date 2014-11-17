@@ -1,4 +1,3 @@
-// watch "ps -eo pid,comm | grep exe/udp_read | awk '{ print \$1 }' | xargs ps M | wc -l"
 package main
 
 import (
@@ -12,23 +11,26 @@ import (
 const maxport = 65535
 
 func main() {
-	numConns, err := strconv.Atoi(os.Args[0])
+	host := os.Args[0]
+	numConns, err := strconv.Atoi(os.Args[1])
 	if err != nil {
 		panic(err)
 	}
 
 	for conns, port := 0, 1024; conns < numConns && port < maxport; port++ {
-		laddr := &net.UDPAddr{
-			Port: port,
-		}
-		conn, err := net.ListenUDP("udp", laddr)
+		raddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%p", host, port))
 		if err != nil {
-			fmt.Printf("Error listening on port %d: %s\n", port, err)
+			panic(err)
+		}
+
+		conn, err := net.DialTCP("tcp", nil, raddr)
+		if err != nil {
+			fmt.Printf("Error dialing port %d: %s\n", port, err)
 			continue
 		}
 		defer conn.Close()
 
-		go readConnection(conn)
+		go writeConnection(conn)
 		conns++
 
 		if conns%100 == 0 {
@@ -40,9 +42,9 @@ func main() {
 	bufio.NewReader(os.Stdin).ReadString('\n')
 }
 
-func readConnection(conn *net.UDPConn) {
+func writeConnection(conn *net.TCPConn) {
+	bytes := []byte("derping!")
 	for {
-		bytes := make([]byte, 32)
-		conn.ReadFromUDP(bytes)
+		conn.Write(bytes)
 	}
 }

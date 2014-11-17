@@ -5,18 +5,22 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 )
 
-const (
-	maxport  = 65535
-	numConns = 100
-)
+const maxport = 65535
 
 func main() {
+	host := os.Args[0]
+	numConns, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
+
 	for conns, port := 0, 1024; conns < numConns && port < maxport; port++ {
-		raddr := &net.UDPAddr{
-			Port: port,
-			IP:   net.ParseIP("127.0.0.1"),
+		raddr := net.ResolveTCPAddr("udp", fmt.Sprintf("%s:%p", host, port))
+		if err != nil {
+			panic(err)
 		}
 
 		conn, err := net.DialUDP("udp", nil, raddr)
