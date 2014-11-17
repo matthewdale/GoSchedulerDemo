@@ -37,10 +37,11 @@ func main() {
 }
 
 func readFile(file *os.File) {
-	bytes := []byte("derping!")
-	file.Write(bytes)
+	bytes := []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	// file.Write(bytes)
 	for {
-		read := make([]byte, 32)
+		file.Write(bytes)
+		read := make([]byte, 64)
 		file.Read(read)
 	}
 }
