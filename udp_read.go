@@ -12,7 +12,7 @@ import (
 const maxport = 65535
 
 func main() {
-	numConns, err := strconv.Atoi(os.Args[0])
+	numConns, err := strconv.Atoi(os.Args[1])
 	if err != nil {
 		panic(err)
 	}

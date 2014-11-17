@@ -11,14 +11,14 @@ import (
 const maxport = 65535
 
 func main() {
-	host := os.Args[0]
-	numConns, err := strconv.Atoi(os.Args[1])
+	host := os.Args[1]
+	numConns, err := strconv.Atoi(os.Args[2])
 	if err != nil {
 		panic(err)
 	}
 
 	for conns, port := 0, 1024; conns < numConns && port < maxport; port++ {
-		raddr := net.ResolveTCPAddr("udp", fmt.Sprintf("%s:%p", host, port))
+		raddr := net.ResolveTCPAddr("udp", fmt.Sprintf("%s:%d", host, port))
 		if err != nil {
 			panic(err)
 		}

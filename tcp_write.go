@@ -8,32 +8,28 @@ import (
 	"strconv"
 )
 
-const maxport = 65535
-
 func main() {
-	host := os.Args[0]
-	numConns, err := strconv.Atoi(os.Args[1])
+	connString := os.Args[1]
+	maxConns, err := strconv.Atoi(os.Args[2])
 	if err != nil {
 		panic(err)
 	}
 
-	for conns, port := 0, 1024; conns < numConns && port < maxport; port++ {
-		raddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%p", host, port))
-		if err != nil {
-			panic(err)
-		}
+	raddr, err := net.ResolveTCPAddr("tcp", connString)
+	if err != nil {
+		panic(err)
+	}
 
+	for conns := 0; conns < maxConns; conns++ {
 		conn, err := net.DialTCP("tcp", nil, raddr)
 		if err != nil {
-			fmt.Printf("Error dialing port %d: %s\n", port, err)
-			continue
+			panic(fmt.Sprintf("Error dialing %s: %s\n", connString, err))
 		}
 		defer conn.Close()
 
 		go writeConnection(conn)
-		conns++
 
-		if conns%100 == 0 {
+		if (conns+1)%100 == 0 {
 			fmt.Printf("Opened %d connections...\n", conns)
 		}
 	}
