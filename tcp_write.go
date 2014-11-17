@@ -20,6 +20,7 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Printf("Dialing %s...\n", raddr.String())
 	for conns := 0; conns < maxConns; conns++ {
 		conn, err := net.DialTCP("tcp", nil, raddr)
 		if err != nil {
@@ -29,7 +30,7 @@ func main() {
 
 		go writeConnection(conn)
 
-		if (conns+1)%100 == 0 {
+		if (conns+1)%10 == 0 {
 			fmt.Printf("Opened %d connections...\n", conns)
 		}
 	}

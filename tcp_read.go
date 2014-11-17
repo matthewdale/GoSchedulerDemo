@@ -24,8 +24,7 @@ func main() {
 	defer listener.Close()
 
 	fmt.Printf("Listening for connections on port %d...\n", port)
-	conns := 0
-	for {
+	for conns := 1; ; conns++ {
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Printf("Error accepting new connection on %s: %s", listener.Addr().String(), err)
@@ -33,9 +32,7 @@ func main() {
 		}
 		go readConnection(conn)
 
-		conns++
-
-		if (conns+1)%100 == 0 {
+		if conns%10 == 0 {
 			fmt.Printf("Accepted %d connections...\n", conns)
 		}
 	}
