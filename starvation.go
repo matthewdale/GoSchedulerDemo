@@ -26,7 +26,17 @@ func handleMessage(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
 	var message Message
 	decoder.Decode(&message)
+
 	go deriveKey([]byte(message.Password), []byte(message.Salt))
+
+	js, err := json.Marshal(map[string]string{"success": "true"})
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Write(js)
 }
 
 func deriveKey(password, salt []byte) {

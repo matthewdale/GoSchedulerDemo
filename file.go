@@ -1,4 +1,5 @@
 // watch "ps -eo pid,comm | grep exe/file | awk '{ print \$1 }' | xargs ps M | wc -l"
+// top -H -p <pid>
 package main
 
 import (
@@ -37,8 +38,7 @@ func main() {
 }
 
 func readFile(file *os.File) {
-	bytes := []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-	// file.Write(bytes)
+	bytes := []byte("JsKhoYMbBnm5daMsHskjGmlNK95Rl7NWW7lGB2Yb6n7efprtvLRhix0PZWQ8Nid\n")
 	for {
 		file.Write(bytes)
 		read := make([]byte, 64)
