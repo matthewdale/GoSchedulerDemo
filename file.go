@@ -11,9 +11,15 @@ import (
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("The first argument must be the number of files to create.")
+		os.Exit(1)
+	}
+
 	numFiles, err := strconv.Atoi(os.Args[1])
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	fmt.Printf("Creating %d files in %s\n", numFiles, os.TempDir())
