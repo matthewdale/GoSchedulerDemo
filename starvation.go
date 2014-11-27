@@ -2,34 +2,56 @@
 package main
 
 import (
+	crand "crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
-	"fmt"
+	mrand "math/rand"
 	"net/http"
-	"os"
 
 	"code.google.com/p/go.crypto/pbkdf2"
+	"github.com/coreos/go-log/log"
 )
 
-type Message struct {
+const SaltLength = 32
+
+type Request struct {
 	Password string `json:"password"`
-	Salt     string `json:"salt"`
+}
+
+type Response struct {
+	Salt string `json:"salt"`
+}
+
+func init() {
+	bytes := make([]byte, 8)
+	crand.Read(bytes)
+	seed := int64(binary.LittleEndian.Uint64(bytes))
+	mrand.Seed(seed)
 }
 
 func main() {
-	http.HandleFunc("/", handleMessage)
+	http.HandleFunc("/", generateSalt)
 	http.ListenAndServe(":8080", nil)
 }
 
-func handleMessage(writer http.ResponseWriter, request *http.Request) {
+func generateSalt(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
-	var message Message
-	decoder.Decode(&message)
+	var requestBody Request
+	decoder.Decode(&requestBody)
 
-	go deriveKey([]byte(message.Password), []byte(message.Salt))
+	bytes := make([]byte, SaltLength)
+	randomBytes(bytes)
+	salt := base64.StdEncoding.EncodeToString(bytes)
+	log.Info("Generated salt ", salt)
 
-	js, err := json.Marshal(map[string]string{"success": "true"})
+	go deriveKey(requestBody.Password, salt)
+
+	response := Response{
+		Salt: string(salt),
+	}
+	js, err := json.Marshal(response)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
@@ -39,11 +61,15 @@ func handleMessage(writer http.ResponseWriter, request *http.Request) {
 	writer.Write(js)
 }
 
-func deriveKey(password, salt []byte) {
-	dk := pbkdf2.Key(password, salt, 4096, 256, sha1.New)
-	encoder := base64.NewEncoder(base64.StdEncoding, os.Stdout)
-	encoder.Write(dk)
-	encoder.Close()
+func randomBytes(p []byte) int {
+	for i := range p {
+		p[i] = byte(mrand.Int63() & 0xff)
+	}
+	return len(p)
+}
 
-	fmt.Println("")
+func deriveKey(password, salt string) {
+	dk := pbkdf2.Key([]byte(password), []byte(salt), 4096, 256, sha1.New)
+
+	log.Info("Derived key ", base64.StdEncoding.EncodeToString(dk))
 }
