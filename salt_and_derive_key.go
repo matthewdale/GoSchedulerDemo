@@ -79,7 +79,7 @@ func randomBytes(p []byte) int {
 }
 
 func deriveKey(password, salt string) {
-	dk := pbkdf2.Key([]byte(password), []byte(salt), 4096, 256, sha1.New)
+	dk := pbkdf2.Key([]byte(password), []byte(salt), 8192, 256, sha1.New)
 
 	logger.Info("Derived key ", base64.StdEncoding.EncodeToString(dk))
 }
