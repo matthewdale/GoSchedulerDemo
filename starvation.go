@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	crand "crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
@@ -9,6 +10,7 @@ import (
 	"encoding/json"
 	mrand "math/rand"
 	"net/http"
+	"os"
 
 	"code.google.com/p/go.crypto/pbkdf2"
 	"github.com/coreos/go-log/log"
@@ -25,13 +27,21 @@ type Response struct {
 }
 
 func init() {
+	// seed math/rand with some bytes from crypto/rand
 	bytes := make([]byte, 8)
 	crand.Read(bytes)
 	seed := int64(binary.LittleEndian.Uint64(bytes))
 	mrand.Seed(seed)
 }
 
+var logger *log.Logger
+
 func main() {
+	// create a buffered writer for stdout
+	buffer := bufio.NewWriter(os.Stdout)
+	defer buffer.Flush()
+	logger = log.NewSimple(log.CombinedSink(buffer, log.BasicFormat, log.BasicFields))
+
 	http.HandleFunc("/", generateSalt)
 	http.ListenAndServe(":8080", nil)
 }
@@ -44,7 +54,7 @@ func generateSalt(writer http.ResponseWriter, request *http.Request) {
 	bytes := make([]byte, SaltLength)
 	randomBytes(bytes)
 	salt := base64.StdEncoding.EncodeToString(bytes)
-	log.Info("Generated salt ", salt)
+	logger.Info("Generated salt ", salt)
 
 	go deriveKey(requestBody.Password, salt)
 
@@ -71,5 +81,5 @@ func randomBytes(p []byte) int {
 func deriveKey(password, salt string) {
 	dk := pbkdf2.Key([]byte(password), []byte(salt), 4096, 256, sha1.New)
 
-	log.Info("Derived key ", base64.StdEncoding.EncodeToString(dk))
+	logger.Info("Derived key ", base64.StdEncoding.EncodeToString(dk))
 }
